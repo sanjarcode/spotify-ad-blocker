@@ -4,6 +4,9 @@ const GLib = imports.gi.GLib;
 const Gvc = imports.gi.Gvc;
 const Mpris = imports.ui.mpris;
 const Volume = imports.ui.status.volume;
+const Gio = imports.gi.Gio;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 
 let adBlocker;
 const MPRIS_PLAYER = 'org.mpris.MediaPlayer2.spotify';
@@ -106,11 +109,36 @@ function init() {
 
 function enable() {
     adBlocker = new AdBlocker();
-    Main.panel._rightBox.insert_child_at_index(adBlocker.button, 0);
+
+    let settings = getSettings();
+
+    adBlocker.activated = settings.get_boolean('mute-ads');
+    if (!settings.get_boolean('hide-icon'))
+        Main.panel._rightBox.insert_child_at_index(adBlocker.button, 0);
+}
+
+function getSettings()
+{
+    // Load schema
+	gschema = Gio.SettingsSchemaSource.new_from_directory(
+        Me.dir.get_child('schemas').get_path(),
+        Gio.SettingsSchemaSource.get_default(),
+        false
+    );
+
+	// Load settings
+    settings = new Gio.Settings({
+        settings_schema: gschema.lookup('org.gnome.shell.extensions.spotifyadblocker', true)
+    });
+
+    return settings;
 }
 
 function disable() {
     adBlocker.disable();
-    Main.panel._rightBox.remove_child(adBlocker.button);
+
+    if (!settings.get_boolean('hide-icon'))
+        Main.panel._rightBox.remove_child(adBlocker.button);
+
     adBlocker = null;
 }
