@@ -33,6 +33,20 @@ var AdBlocker = class AdBlocker {
         this.button.set_child(this.music_icon);
         this.button.connect('button-press-event', this.toggle.bind(this));
 
+        // Listen for toggle of mute button in preferences
+		onSetMuteState = this.settings.connect(
+			'changed::mute-ads',
+			this._setMuteState.bind(this)
+		);
+		this._setMuteState(); // checks and connects the toggle button
+
+        // Listen for hide-icon switch in preferences
+		onToggleHide = this.settings.connect(
+			'changed::hide-icon',
+			this._toggleHide.bind(this)
+		);
+		this._toggleHide(); // checks and connects the toggle button
+
         this.enable();
     }
 
